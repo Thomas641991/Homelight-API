@@ -4,7 +4,7 @@ StartLimitIntervalSec=0
 
 [Service]
 PIDFile=/tmp/homelight-api.pid
-User=Pi
+User=pi
 Restart=always
 RestartSec=1
 KillSignal=SIGQUIT
