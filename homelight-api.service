@@ -7,8 +7,8 @@ User=Pi
 Group=WORKGROUP
 Restart=always
 KillSignal=SIGQUIT
-WorkingDirectory=~/Homelight-API/
-ExecStart=~/Homelight-API/server.js
+WorkingDirectory=/home/pi/Homelight-API/
+ExecStart=/home/pi/Homelight-API/server.js
 
 [Install]
 WantedBy=multi-user.target
