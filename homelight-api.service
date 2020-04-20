@@ -8,7 +8,7 @@ User=pi
 Restart=always
 RestartSec=1
 KillSignal=SIGQUIT
-ExecStart=/home/pi/Homelight-API/server.js
+ExecStart=/bin/bash/ /home/pi/Homelight-API/server.js
 
 [Install]
 WantedBy=default.target
