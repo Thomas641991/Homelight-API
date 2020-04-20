@@ -10,9 +10,6 @@ sudo apt-get install -y nodejs
 # Install build-tools
 sudo apt-get install -y build-essential
 
-sudo apt install mosquitto mosquitto-clients
-sudo systemctl enable mosquitto
-
 # Install MQTT
 sudo apt install -y mosquitto mosquitto-clients
 sudo systemctl enable mosquitto.service
