@@ -26,6 +26,7 @@ chmod +x ~/server.js
 # Copy homelight-api.service to boot at start
 echo "Copy Homelight-API.service"
 sudo cp homelight-api.service ../../../etc/systemd/system/
+sudo systemctl daemon-reload
 
 # start service
 echo "Start service"
