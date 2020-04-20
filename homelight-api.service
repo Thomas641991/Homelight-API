@@ -1,5 +1,6 @@
 [Unit]
 Description=Homelight-API
+StartLimitIntervalSec=0
 
 [Service]
 PIDFile=/tmp/homelight-api.pid
