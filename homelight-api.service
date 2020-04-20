@@ -4,10 +4,9 @@ Description=Homelight-API
 [Service]
 PIDFile=/tmp/homelight-api.pid
 User=Pi
-Group=WORKGROUP
 Restart=always
+RestartSec=1
 KillSignal=SIGQUIT
-WorkingDirectory=/home/pi/Homelight-API/
 ExecStart=/home/pi/Homelight-API/server.js
 
 [Install]

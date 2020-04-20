@@ -29,4 +29,5 @@ sudo cp homelight-api.service ../../../etc/systemd/system/
 
 # start service
 echo "Start service"
-sudo systemctl enable homelight-api.service
+sudo systemctl start homelight-api
+sudo systemctl enable homelight-api
