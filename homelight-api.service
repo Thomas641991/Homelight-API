@@ -1,0 +1,14 @@
+[Unit]
+Description=Homelight-API
+
+[Service]
+PIDFile=/tmp/homelight-api.pid
+User=Pi
+Group=WORKGROUP
+Restart=always
+KillSignal=SIGQUIT
+WorkingDirectory=~/Homelight-API/
+ExecStart=~/Homelight-API/server.js
+
+[Install]
+WantedBy=multi-user.target
