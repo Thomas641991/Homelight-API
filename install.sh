@@ -5,10 +5,12 @@
 cd ~/.
 
 #Update and upgrade
+echo "Check for linux updates"
 sudo apt update
 sudo apt upgrade -y
 
 #Install GIT
+echo "Installing git client"
 sudo apt-get install git
 
 # Install Node.JS
@@ -21,6 +23,7 @@ echo "Installing Build-Tools"
 sudo apt-get install -y build-essential
 
 #install MongoDB (We need a 64-bit OS for this, Raspbian will not run this properly)
+echo "Installing MongoDB"
 curl -s https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
 echo "deb [ arch=arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
 sudo apt update
@@ -35,6 +38,7 @@ sudo systemctl enable mosquitto.service
 
 # Install API
 echo "Installing API"
+cd /home/ubuntu/usr/local/lib/Homelight-API
 sudo npm install --save
 sudo chmod +x ./server.js
 sudo chmod +x ./install.sh
