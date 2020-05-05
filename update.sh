@@ -2,12 +2,13 @@
 sudo systemctl stop homelight-api
 
 #Update the API by running this script
-cd ../
-git pull origin master
+git pull origin master --rebase
+
+#Give update script persmission
+sudo chmod +x update.sh
 
 #Install update
 echo "Installing API Update"
-cd Homelight-API/
 sudo npm install --save
 chmod +x ~/server.js
 
