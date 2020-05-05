@@ -7,12 +7,12 @@ git pull origin master --rebase
 git stash pop
 
 #Give update script persmission
-chmod +x update.sh
+sudo chmod +x update.sh
 
 #Install update
 echo "Installing API Update"
 sudo npm install --save
-chmod +x ~/server.js
+sudo chmod +x ./server.js
 
 # Copy homelight-api.service to boot at start
 echo "Copy Homelight-API.service"
