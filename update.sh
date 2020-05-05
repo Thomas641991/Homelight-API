@@ -2,10 +2,12 @@
 sudo systemctl stop homelight-api
 
 #Update the API by running this script
+git stash
 git pull origin master --rebase
+git stash pop
 
 #Give update script persmission
-sudo chmod +x update.sh
+chmod +x update.sh
 
 #Install update
 echo "Installing API Update"
