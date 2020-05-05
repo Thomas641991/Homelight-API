@@ -5,12 +5,12 @@
 cd ~/.
 
 #Update and upgrade
-echo "Check for linux updates"
+echo "Check for Linux updates"
 sudo apt update
 sudo apt upgrade -y
 
 #Install GIT
-echo "Installing git client"
+echo "Installing Git client"
 sudo apt-get install git
 
 # Install Node.JS
@@ -38,15 +38,14 @@ sudo systemctl enable mosquitto.service
 
 # Install API
 echo "Installing API"
-echo $PWD
-cd ~/usr/local/lib/Homelight-API
+cd /usr/local/lib/Homelight-API
 sudo npm install --save
 sudo chmod +x ./server.js
 sudo chmod +x ./install.sh
 sudo chmod +x ./update.sh
 
 # Copy homelight-api.service to boot at start
-echo "Copy Homelight-API.service"
+echo "Adding Homelight-API.service"
 sudo cp homelight-api.service /etc/systemd/system/
 sudo systemctl daemon-reload
 
