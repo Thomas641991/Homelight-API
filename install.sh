@@ -36,9 +36,9 @@ sudo systemctl enable mosquitto.service
 echo "Installing API"
 cd Homelight-API/
 sudo npm install --save
-+x ./server.js
-+x ./install.sh
-+x ./update.sh
+chmod +x ./server.js
+chmod +x ./install.sh
+chmod +x ./update.sh
 
 # Copy homelight-api.service to boot at start
 echo "Copy Homelight-API.service"
