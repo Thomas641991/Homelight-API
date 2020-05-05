@@ -10,7 +10,7 @@ Type=simple
 Restart=always
 RestartSec=1
 KillSignal=SIGQUIT
-ExecStart=node /home/ubuntu/usr/local/lib/Homelight-API/server.js
+ExecStart=node /usr/local/lib/Homelight-API/server.js
 
 [Install]
 WantedBy=default.target

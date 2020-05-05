@@ -1,15 +1,17 @@
-#! /bin/bash
+#!/bin/bash
+
 # Install script for HomeLight API
+# Run this script using bash install.sh
 
 # shellcheck disable=SC2164
 cd ~/.
 
-#Update and upgrade
+# Update and upgrade
 echo "Check for Linux updates"
 sudo apt update
 sudo apt upgrade -y
 
-#Install GIT
+# Install GIT
 echo "Installing Git client"
 sudo apt-get install git
 
@@ -22,7 +24,7 @@ sudo apt-get install -y nodejs
 echo "Installing Build-Tools"
 sudo apt-get install -y build-essential
 
-#install MongoDB (We need a 64-bit OS for this, Raspbian will not run this properly)
+# Install MongoDB (We need a 64-bit OS for this, Raspbian will not run this properly)
 echo "Installing MongoDB"
 curl -s https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
 echo "deb [ arch=arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
