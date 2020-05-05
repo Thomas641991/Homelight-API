@@ -1,4 +1,5 @@
 const deviceController = require('../controllers/device_controller');
+const groupController = require('../controllers/group_controller');
 
 module.exports = (app) => {
     
@@ -11,13 +12,21 @@ module.exports = (app) => {
     //POST
     app.post('/addNewDevice', deviceController.addDevice);
     app.post('/setDeviceName', deviceController.setDeviceName);
-    app.post('/setGroupNumber', deviceController.setGroupNumber);
+    app.post('/setGroup', deviceController.setGroup);
     app.post('/setPowerState', deviceController.setPowerStateDevice);
     app.post('/softResetDevice', deviceController.softResetDevice);
     app.post('/hardResetDevice', deviceController.hardResetDevice);
     app.post('/restartDevice', deviceController.restartDevice);
-    app.post('/deleteDevice', deviceController.deleteDeviceEnpoint);
+    app.post('/deleteDevice', deviceController.deleteDevice);
     
     //App
     //TODO: APP ROUTES
+    
+    //Group
+    //GET
+    app.post('/allGroups', groupController.getAllGroups);
+    
+    //POST
+    app.post('/addGroup', groupController.addGroup);
+    app.post('/removeGroup', groupController.removeGroup);
 };

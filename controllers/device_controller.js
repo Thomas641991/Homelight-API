@@ -1,5 +1,7 @@
-const Device = require('../models/device');
+const Device = require('../models/device.model');
+const GroupController = require('./group_controller');
 const MQTTHandler = require('./mqtt_controller');
+const mongodb = require('../config/env/env');
 
 let deviceArray = [];
 
@@ -9,138 +11,162 @@ module.exports = {
 	},
 	
 	//Endpoints
-	addDevice(req, res, next) {
+	async addDevice(req, res, next) {
 		let device = new Device({
-			deviceId: req.body.deviceId,
 			deviceIp: req.body.deviceIp,
 			deviceName: req.body.deviceName,
-			groupNumber: req.body.groupNumber,
+			groupId: req.body.groupId,
 			powerState: req.body.powerState
 		});
 		
-		if(!deviceArray.includes(device)) {
-			deviceArray.push(device);
+		let deviceObj = await Device.find({deviceName: device.deviceName, deviceIp: device.deviceIp});
+		
+		if (deviceObj == 0) {
 			
-			if(device.deviceId == 0) {
-				setDeviceId(device.deviceId);
-			} else {
+			Device.create(device).then(() => {
 				MQTTHandler.publishMessage('/client/da', JSON.stringify(deviceArray));
-			}
+				res.sendStatus(200);
+				console.log('Device added');
+			}).catch(err => {
+				console.log("Err on creating device");
+				console.log(err);
+				res.sendStatus(500);
+			});
+		} else {
+			console.log('Device already exists');
+			res.sendStatus(500);
 		}
-		res.sendStatus(200);
 	},
 	
 	setDeviceName(req, res, next) {
-		let deviceId = req.body.deviceId;
+		let _id = req.body._id;
 		let deviceName = req.body.deviceName;
-		MQTTHandler.publishMessage('device/' + deviceId + '/dn', deviceName);
-		res.sendStatus(200);
+		
+		Device.findOneAndUpdate({_id: _id}, {deviceName: deviceName}, {new: true}).then((response) => {
+			if (response !== 0) {
+				res.status(200)
+					.contentType('application/json')
+					.send(response);
+				MQTTHandler.publishMessage('device/' + _id + '/dn', deviceName);
+			} else {
+				res.sendStatus(500);
+			}
+		}).catch(err => {
+			console.log("err on setDeviceName");
+			console.log(err);
+			res.sendStatus(500);
+		})
 	},
 	
-	setGroupNumber(req, res, next) {
-		let deviceId = req.body.deviceId;
-		let groupNr = req.body.groupNr;
-		MQTTHandler.publishMessage('device/' + deviceId + '/gn', groupNr.toString());
-		res.sendStatus(200);
+	async setGroup(req, res, next) {
+		let _id = req.body._id;
+		let groupId = req.body.groupId;
 		
+		Device.findOneAndUpdate({_id: _id}, {groupId: groupId}, {new: true}).then((device) => {
+			GroupController.addDeviceToGroup(device).then((result) => {
+				if (result === true) {
+					MQTTHandler.publishMessage('device/' + _id + '/gn', groupId);
+					res.sendStatus(200);
+				} else {
+					res.sendStatus(500);
+				}
+			});
+		})
 	},
+	
 	setPowerStateDevice(req, res, next) {
-		let deviceId = req.body.deviceId;
+		let _id = req.body._id;
 		let powerState = req.body.powerState;
-		MQTTHandler.publishMessage('device/' + deviceId + '/ps', powerState.toString());
-		res.sendStatus(200);
+		
+		Device.findOne({_id: _id}).then((device) => {
+			if (device !== null) {
+				Device.findOneAndUpdate({_id: _id}, {powerState: powerState}).then((device) => {
+					res.sendStatus(200);
+					MQTTHandler.publishMessage('device/' + _id + '/ps', powerState.toString());
+				}).catch((err) => {
+					res.sendStatus(500);
+					console.log('err on setPowerState');
+					console.log(err);
+				});
+			}
+		}).catch((err) => {
+			res.sendStatus(500);
+			console.log('err on finding device');
+			console.log(err);
+		})
 	},
 	
 	softResetDevice(req, res, next) {
-		let deviceId = req.body.deviceId;
+		let _id = req.body._id;
 		
-		MQTTHandler.publishMessage('device/' + deviceId + '/rd', 'true');
+		MQTTHandler.publishMessage('device/' + _id + '/rd', 'true');
 		setTimeout(() => {
-			MQTTHandler.publishMessage('device/' + deviceId + '/rd', 'false');
+			MQTTHandler.publishMessage('device/' + _id + '/rd', 'false');
 		}, 500);
 		res.sendStatus(200);
 	},
 	
 	hardResetDevice(req, res, next) {
-		let deviceId = req.body.deviceId;
+		let _id = req.body._id;
 		
-		deleteDevice(deviceId);
+		deleteDevice(_id);
 		
-		MQTTHandler.publishMessage('device/' + deviceId + '/hrd', 'true');
+		MQTTHandler.publishMessage('device/' + _id + '/hrd', 'true');
 		setTimeout(() => {
-			MQTTHandler.publishMessage('device/' + deviceId + '/hrd', 'false');
+			MQTTHandler.publishMessage('device/' + _id + '/hrd', 'false');
 		}, 500);
 		
 		res.sendStatus(200);
 	},
 	
 	restartDevice(req, res, next) {
-		let deviceId = req.body.deviceId;
+		let _id = req.body._id;
 		
-		MQTTHandler.publishMessage('device/' + deviceId + '/res', 'true');
+		MQTTHandler.publishMessage('device/' + _id + '/res', 'true');
 		setTimeout(() => {
-			MQTTHandler.publishMessage('device/' + deviceId + '/res', 'false');
+			MQTTHandler.publishMessage('device/' + _id + '/res', 'false');
 		}, 500);
 		
 		res.sendStatus(200);
 	},
 	
-	getAllDevices(req, res, next) {
-		res.send(deviceArray).status(200);
+	async getAllDevices(req, res, next) {
+		let devices = await Device.find({});
+		res.status(200)
+			.contentType('application/json')
+			.send(devices);
 	},
 	
-	getDevice(req, res, next) {
-		let deviceId = req.body.deviceId;
-		let deviceObj;
+	async getDevice(req, res, next) {
+		let _id = req.body._id;
 		
-		deviceArray.forEach(device => {
-			if(device.deviceId == deviceId) {
-				deviceObj = device;
+		let device = await Device.findOne({_id: _id});
+		device !== null ? res.status(200).contentType('application/json').send(device) :
+			res.sendStatus(500);
+	},
+	
+	async deleteDevice(req, res, next) {
+		let removeFromGroupResult = true;
+		let _id = req.body._id;
+		let device = await Device.findOne({_id: _id});
+		
+		if (device !== null) {
+			if (device.groupId !== '0') {
+				removeFromGroupResult = await GroupController.removeDeviceFromGroup(device);
 			}
-		});
-		
-		if(deviceObj !== null) {
-			res.status(200).send(deviceObj);
+			if (removeFromGroupResult === true) {
+				Device.findOneAndDelete({_id: _id}).then(() => {
+					res.sendStatus(200);
+				}).catch((err) => {
+					res.sendStatus(500);
+					console.log('err on deleting device');
+					console.log(err);
+				})
+			}
 		} else {
-			res.status(500);
-			res.json({msg: 'Could not find device'});
+			res.sendStatus(500);
 		}
 	},
 	
-	deleteDeviceEnpoint(req, res, next) {
-		deleteDevice(req.body.deviceId);
-		res.sendStatus(200);
-	},
-}
-
-function setDeviceId(deviceId) {
-	let highestId = 0;
-	let newDeviceId;
 	
-	if (deviceArray.length > 1) {
-		deviceArray.forEach(device => {
-			if (device.deviceId > highestId) {
-				highestId = device.deviceId;
-				newDeviceId = highestId + 1;
-			}
-		});
-	} else {
-		newDeviceId = 1;
-	}
-	
-	deviceArray.forEach(device => {
-		if (device.deviceId === deviceId) {
-			device.deviceId = newDeviceId;
-			MQTTHandler.publishMessage('device/' + deviceId + '/di', device.deviceId.toString());
-			MQTTHandler.publishMessage('/client/da', JSON.stringify(deviceArray));
-		}
-	});
-}
-
-function deleteDevice(deviceId) {
-	deviceArray.forEach((device, index) => {
-		if(device.deviceId == deviceId) {
-			deviceArray.splice(index, 1);
-		}
-	});
 }

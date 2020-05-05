@@ -1,5 +1,3 @@
-const secKey = 'HomeLightSecKey';
-
 let env = {
     webPort: process.env.PORT || 3000,
     dbHost: process.env.DB_HOST || 'localhost',
@@ -15,6 +13,5 @@ let dburl = process.env.NODE_ENV === 'production' ?
 
 module.exports = {
     env: env,
-    dburl: dburl,
-    secKey
+    dburl: dburl
 };
