@@ -38,7 +38,8 @@ sudo systemctl enable mosquitto.service
 
 # Install API
 echo "Installing API"
-cd /home/ubuntu/usr/local/lib/Homelight-API
+echo $PWD
+cd ~/usr/local/lib/Homelight-API
 sudo npm install --save
 sudo chmod +x ./server.js
 sudo chmod +x ./install.sh
