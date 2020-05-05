@@ -28,12 +28,12 @@ module.exports = {
 				res.sendStatus(200);
 				console.log('Device added');
 			}).catch(err => {
-				console.log("Err on creating device");
-				console.log(err);
+				console.error("Err on creating device");
+				console.error(err);
 				res.sendStatus(500);
 			});
 		} else {
-			console.log('Device already exists');
+			console.error('Device already exists');
 			res.sendStatus(500);
 		}
 	},
@@ -52,8 +52,8 @@ module.exports = {
 				res.sendStatus(500);
 			}
 		}).catch(err => {
-			console.log("err on setDeviceName");
-			console.log(err);
+			console.error("err on setDeviceName");
+			console.error(err);
 			res.sendStatus(500);
 		})
 	},
@@ -85,14 +85,14 @@ module.exports = {
 					MQTTHandler.publishMessage('device/' + _id + '/ps', powerState.toString());
 				}).catch((err) => {
 					res.sendStatus(500);
-					console.log('err on setPowerState');
-					console.log(err);
+					console.error('err on setPowerState');
+					console.error(err);
 				});
 			}
 		}).catch((err) => {
 			res.sendStatus(500);
-			console.log('err on finding device');
-			console.log(err);
+			console.error('err on finding device');
+			console.error(err);
 		})
 	},
 	
@@ -109,7 +109,7 @@ module.exports = {
 	hardResetDevice(req, res, next) {
 		let _id = req.body._id;
 		
-		deleteDevice(_id);
+		deleteDevice(req);
 		
 		MQTTHandler.publishMessage('device/' + _id + '/hrd', 'true');
 		setTimeout(() => {
@@ -159,14 +159,12 @@ module.exports = {
 					res.sendStatus(200);
 				}).catch((err) => {
 					res.sendStatus(500);
-					console.log('err on deleting device');
-					console.log(err);
+					console.error('err on deleting device');
+					console.error(err);
 				})
 			}
 		} else {
 			res.sendStatus(500);
 		}
 	},
-	
-	
 }

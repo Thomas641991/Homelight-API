@@ -1,5 +1,6 @@
 const deviceController = require('../controllers/device_controller');
 const groupController = require('../controllers/group_controller');
+const systemController = require('../controllers/system_controller');
 
 module.exports = (app) => {
     
@@ -29,4 +30,8 @@ module.exports = (app) => {
     //POST
     app.post('/addGroup', groupController.addGroup);
     app.post('/removeGroup', groupController.removeGroup);
+    
+    //System
+    //POST
+    app.post('/updateSystem', systemController.updateSystem)
 };

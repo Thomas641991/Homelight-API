@@ -14,7 +14,7 @@ module.exports = {
 		mqttClient.on('message', callbackForMessage);
 		
 		mqttClient.on('error', () => {
-			console.log("Error");
+			console.error("Error");
 		})
 	},
 	
