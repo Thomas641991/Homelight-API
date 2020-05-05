@@ -1,6 +1,9 @@
+#Stop service for update
+sudo systemctl stop homelight-api
+
 #Update the API by running this script
 cd ../
-git clone https://github.com/JobKlimop/Homelight-API.git
+git pull origin master
 
 #Install update
 echo "Installing API Update"
