@@ -1,14 +1,16 @@
 [Unit]
 Description=Homelight-API
 StartLimitIntervalSec=0
+After=network.target
 
 [Service]
 PIDFile=/tmp/homelight-api.pid
-User=pi
+User=ubuntu
+Type=simple
 Restart=always
 RestartSec=1
 KillSignal=SIGQUIT
-ExecStart=node /home/pi/Homelight-API/server.js
+ExecStart=node /home/ubuntu/usr/local/lib/Homelight-API/server.js
 
 [Install]
 WantedBy=default.target

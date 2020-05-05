@@ -1,6 +1,7 @@
 #! /bin/bash
 # Install script for HomeLight API
 
+# shellcheck disable=SC2164
 cd ~/.
 
 #Update and upgrade
@@ -23,7 +24,7 @@ sudo apt-get install -y build-essential
 curl -s https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
 echo "deb [ arch=arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
 sudo apt update
-sudo apt install mongodb-org
+sudo apt install mongodb-org -y
 sudo systemctl enable mongod
 sudo systemctl start mongod
 
@@ -34,7 +35,6 @@ sudo systemctl enable mosquitto.service
 
 # Install API
 echo "Installing API"
-cd Homelight-API/
 sudo npm install --save
 sudo chmod +x ./server.js
 sudo chmod +x ./install.sh
