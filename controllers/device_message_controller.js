@@ -1,6 +1,8 @@
+const Device = require('../models/device.model');
+
 module.exports = {
 
-    handleMessage(topic, message) {
-        console.log('Message received, topic: ' + topic + ', message: ' + message);
+    async powerStateSet(message) {
+        await Device.findOneAndUpdate({id: message.deviceId}, {powerState: message.powerState});
     }
 }

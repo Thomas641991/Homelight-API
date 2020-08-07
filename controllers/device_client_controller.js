@@ -7,7 +7,7 @@ let deviceArray = [];
 
 module.exports = {
 	
-	// Search for devices by publishing message on MQTT for devices
+	// Ask all devices to give id, ip, name, groupId and powerState to check if already connected on boot
 	searchForDevices() {
 		MQTTHandler.publishMessage('all/', 'search_device');
 	},
@@ -16,7 +16,6 @@ module.exports = {
 	
 	// New device will be added in database and checked. After that a device added message will be published on MQTT for clients
 	async addDevice(req, res, next) {
-		//TODO: Check if id === 0 first, no need for looping through devices
 		
 		let device = new Device({
 			deviceIp: req.body.deviceIp,
@@ -86,22 +85,16 @@ module.exports = {
 		})
 	},
 	
-	// Powerstate is updated in database. After that a MQTT message with device ID is published to let device know.
+	// A MQTT message with device ID is published to let device know to change powerstate. Also checks if device still exists in database.
 	// TODO: Check order, is mqtt message first faster?
 	setPowerStateDevice(req, res, next) {
 		let _id = req.body._id;
 		let powerState = req.body.powerState;
 		
+		MQTTHandler.publishMessage('device/' + _id + '/set_power_state', powerState.toString());
 		Device.findOne({_id: _id}).then((device) => {
 			if (device !== null) {
-				Device.findOneAndUpdate({_id: _id}, {powerState: powerState}).then((device) => {
-					res.sendStatus(200);
-					MQTTHandler.publishMessage('device/' + _id + '/set_power_state', powerState.toString());
-				}).catch((err) => {
-					res.sendStatus(500);
-					console.error('err on setPowerState');
-					console.error(err);
-				});
+				res.sendStatus(200);
 			}
 		}).catch((err) => {
 			res.sendStatus(500);

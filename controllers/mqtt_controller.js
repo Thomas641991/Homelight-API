@@ -12,7 +12,7 @@ module.exports = {
 		mqttClient = mqtt_env.mqtt.connect(mqtt_env.mqttIP, mqtt_env.mqttSettings);
 		
 		mqttClient.on('connect', () => {
-			mqttClient.subscribe('newDevice');
+			mqttClient.subscribe(['newDevice', 'device/#', 'group/#']);
 			console.log('Successfully connected to MQTT');
 		});
 		
@@ -35,10 +35,10 @@ function callbackForMessage(topic, message) {
 	console.log(topic + ': ' + message);
 
 	switch (topic) {
-		case 'device':
-			DeviceMessageController.handleMessage(topic, message);
+		case 'device/power_state_set':
+			DeviceMessageController.powerStateSet(message);
 			break;
-		case 'group':
+		case 'group/#':
 			GroupMessageController.handleMessage(topic, message);
 			break;
 	}
