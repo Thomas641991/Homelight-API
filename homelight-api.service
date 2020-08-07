@@ -1,14 +1,16 @@
 [Unit]
 Description=Homelight-API
+StartLimitIntervalSec=0
+After=network.target
 
 [Service]
 PIDFile=/tmp/homelight-api.pid
-User=Pi
-Group=WORKGROUP
+User=ubuntu
+Type=simple
 Restart=always
+RestartSec=1
 KillSignal=SIGQUIT
-WorkingDirectory=~/Homelight-API/
-ExecStart=~/Homelight-API/server.js
+ExecStart=node /usr/local/lib/Homelight-API/server.js
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
