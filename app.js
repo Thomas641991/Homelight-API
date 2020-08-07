@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const routes = require('./routes/routes');
 const MQTTHandler = require('./controllers/mqtt_controller');
-const deviceController = require('./controllers/device_controller');
+const deviceController = require('./controllers/device_client_controller');
 const mongoDB = require('./config/env/mongo_env')
 
 const app = express();

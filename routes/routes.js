@@ -1,5 +1,5 @@
-const deviceController = require('../controllers/device_controller');
-const groupController = require('../controllers/group_controller');
+const deviceController = require('../controllers/device_client_controller');
+const groupController = require('../controllers/group_client_controller');
 const systemController = require('../controllers/system_controller');
 
 module.exports = (app) => {
