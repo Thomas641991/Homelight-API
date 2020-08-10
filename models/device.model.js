@@ -18,6 +18,10 @@ const DeviceSchema = new Schema({
 	powerState: {
 		type: Number,
 		required: true
+	},
+	previousId: {
+		type: String,
+		required: false
 	}
 });
 

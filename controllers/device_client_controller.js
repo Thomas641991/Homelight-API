@@ -1,4 +1,6 @@
 const Device = require('../models/device.model');
+const DeviceEvent = require('../models/device_event.model');
+const EventController = require('./event_controller');
 const GroupController = require('./group_client_controller');
 const MQTTHandler = require('./mqtt_controller');
 const mongodb = require('../config/env/env');
@@ -31,10 +33,11 @@ module.exports = {
 		
 		if (deviceObj === 0) {
 			
-			Device.create(device).then(() => {
+			Device.create(device).then((device) => {
 				MQTTHandler.publishMessage('/client/device_added', JSON.stringify(deviceArray));
 				res.sendStatus(200);
 				console.log('Device added');
+				DeviceEvent.create(EventController.deviceEvent('device.created', device));
 			}).catch(err => {
 				console.error("Err on creating device");
 				console.error(err);
@@ -45,26 +48,36 @@ module.exports = {
 			res.sendStatus(500);
 		}
 	},
-	
+
+	// TODO: Remove ID from topic and into message
 	// Device name will be updated in database and checked. If OK, the new name will be published on MQTT with device ID to let device know.
 	setDeviceName(req, res, next) {
 		let _id = req.body._id;
 		let deviceName = req.body.deviceName;
-		
-		Device.findOneAndUpdate({_id: _id}, {deviceName: deviceName}, {new: true}).then((response) => {
-			if (response !== 0) {
-				res.status(200)
-					.contentType('application/json')
-					.send(response);
-				MQTTHandler.publishMessage('device/' + _id + '/set_device_name', deviceName);
-			} else {
-				res.sendStatus(500);
+
+		MQTTHandler.publishMessage('device/' + _id + '/set_device_name', deviceName);
+		Device.findOne({_id: _id}).then((device) => {
+			if (device !== null) {
+				res.sendStatus(200);
 			}
-		}).catch(err => {
-			console.error("err on setDeviceName");
-			console.error(err);
+		}).catch((err) => {
 			res.sendStatus(500);
+			console.error('err on finding device');
+			console.error(err);
 		})
+		// Device.findOneAndUpdate({_id: _id}, {deviceName: deviceName}, {new: true}).then((response) => {
+		// 	if (response !== 0) {
+		// 		res.status(200)
+		// 			.contentType('application/json')
+		// 			.send(response);
+		// 	} else {
+		// 		res.sendStatus(500);
+		// 	}
+		// }).catch(err => {
+		// 	console.error("err on setDeviceName");
+		// 	console.error(err);
+		// 	res.sendStatus(500);
+		// })
 	},
 	
 	
@@ -72,21 +85,29 @@ module.exports = {
 	async setGroup(req, res, next) {
 		let _id = req.body._id;
 		let groupId = req.body.groupId;
-		
-		Device.findOneAndUpdate({_id: _id}, {groupId: groupId}, {new: true}).then((device) => {
-			GroupController.addDeviceToGroup(device).then((result) => {
-				if (result === true) {
-					MQTTHandler.publishMessage('device/' + _id + '/set_group_number', groupId);
-					res.sendStatus(200);
-				} else {
-					res.sendStatus(500);
-				}
-			});
+
+		MQTTHandler.publishMessage('device/' + _id + '/set_group_number', groupId);
+		Device.findOne({_id: _id}).then((device) => {
+			if (device !== null) {
+				res.sendStatus(200);
+			}
+		}).catch((err) => {
+			res.sendStatus(500);
+			console.error('err on finding device');
+			console.error(err);
 		})
+		// Device.findOneAndUpdate({_id: _id}, {groupId: groupId}, {new: true}).then((device) => {
+		// 	GroupController.addDeviceToGroup(device).then((result) => {
+		// 		if (result === true) {
+		// 			res.sendStatus(200);
+		// 		} else {
+		// 			res.sendStatus(500);
+		// 		}
+		// 	});
+		// })
 	},
 	
 	// A MQTT message with device ID is published to let device know to change powerstate. Also checks if device still exists in database.
-	// TODO: Check order, is mqtt message first faster?
 	setPowerStateDevice(req, res, next) {
 		let _id = req.body._id;
 		let powerState = req.body.powerState;
@@ -111,7 +132,17 @@ module.exports = {
 		setTimeout(() => {
 			MQTTHandler.publishMessage('device/' + _id + '/reset_device', 'false');
 		}, 500);
-		res.sendStatus(200);
+
+		Device.findOne({_id: _id}).then((device) => {
+			if (device !== null) {
+				DeviceEvent.create(EventController.deviceEvent('device.soft_reset', device));
+				res.sendStatus(200);
+			}
+		}).catch((err) => {
+			res.sendStatus(500);
+			console.error('err on finding device');
+			console.error(err);
+		})
 	},
 	
 	// Hard reset device to clear all data on device and remove device from database. Delete from database first, then publish hard reset device state = true. After 500ms set state = false
@@ -125,8 +156,17 @@ module.exports = {
 		setTimeout(() => {
 			MQTTHandler.publishMessage('device/' + _id + '/hard_reset_device', 'false');
 		}, 500);
-		
-		res.sendStatus(200);
+
+		Device.findOne({_id: _id}).then((device) => {
+			if (device !== null) {
+				DeviceEvent.create(EventController.deviceEvent('device.hard_reset', device));
+				res.sendStatus(200);
+			}
+		}).catch((err) => {
+			res.sendStatus(500);
+			console.error('err on finding device');
+			console.error(err);
+		})
 	},
 	
 	// Publish restart state = true message on MQTT with device ID. After 500ms post restart state = false message to avoid loop.
@@ -137,8 +177,17 @@ module.exports = {
 		setTimeout(() => {
 			MQTTHandler.publishMessage('device/' + _id + '/restart_device', 'false');
 		}, 500);
-		
-		res.sendStatus(200);
+
+		Device.findOne({_id: _id}).then((device) => {
+			if (device !== null) {
+				DeviceEvent.create(EventController.deviceEvent('device.restart', device));
+				res.sendStatus(200);
+			}
+		}).catch((err) => {
+			res.sendStatus(500);
+			console.error('err on finding device');
+			console.error(err);
+		})
 	},
 	
 	async getAllDevices(req, res, next) {
@@ -166,7 +215,8 @@ module.exports = {
 				removeFromGroupResult = await GroupController.removeDeviceFromGroup(device);
 			}
 			if (removeFromGroupResult === true) {
-				Device.findOneAndDelete({_id: _id}).then(() => {
+				Device.findOneAndDelete({_id: _id}).then((device) => {
+					DeviceEvent.create(EventController.deviceEvent('device.delete', device));
 					res.sendStatus(200);
 				}).catch((err) => {
 					res.sendStatus(500);

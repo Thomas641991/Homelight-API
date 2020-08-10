@@ -1,8 +1,8 @@
 const Group = require('../models/group.model');
+const GroupEvent = require('../models/group_event.model');
+const EventController = require('./event_controller');
 const Device = require('../models/device.model');
-const DeviceController = require('./device_client_controller');
 const MQTTHandler = require('./mqtt_controller');
-const mongodb = require('../config/env/env');
 
 module.exports = {
     // Endpoints
@@ -27,7 +27,8 @@ module.exports = {
         Group.findOne({groupName: groupName}).then((group) => {
             if (group === null) {
                 Group.create({groupName: groupName}).then((group) => {
-                    MQTTHandler.publishMessage('/client/ga', JSON.stringify(group));
+                    MQTTHandler.publishMessage('/client/group_added', JSON.stringify(group));
+                    GroupEvent.create(EventController.groupEvent('group.created', group));
                     res.sendStatus(200);
                 }).catch((err) => {
                     res.sendStatus(500);
@@ -43,15 +44,16 @@ module.exports = {
     },
 
     // Check if device is already added to group, if not then update group and return true.
-    async addDeviceToGroup(device) {
-        let group = await Group.findOne({_id: device.groupId})
+    async addDeviceToGroup(deviceId, groupId) {
+        let group = await Group.findOne({_id: groupId})
             .catch(err => {
                 console.error('err on finding group');
                 console.error(err);
             });
 
-        if (group.devices.length === 0 || !group.devices.includes(device._id)) {
-            Group.updateOne({_id: device.groupId}, {$push: {devices: device._id}}).then(() => {
+        if (group.devices.length === 0 || !group.devices.includes(deviceId)) {
+            Group.updateOne({_id: groupId}, {$push: {devices: deviceId}}).then((group) => {
+                GroupEvent.create(EventController.groupEvent('group.device_added', group))
                 return true;
             }).catch((err) => {
                 console.error('err on adding to group');
@@ -78,6 +80,7 @@ module.exports = {
             }
 
             Group.findOneAndDelete({_id: _id}).then(() => {
+                GroupEvent.create(EventController.groupEvent('group.deleted', group));
                 res.sendStatus(200);
             }).catch((err) => {
                 res.sendStatus(500);
@@ -92,7 +95,9 @@ module.exports = {
         let group = await Group.findOne({_id: device.groupId});
 
         if (group.devices.length > 0 && group.devices.includes(device._id)) {
-            Group.updateOne({_id: device.groupId}, {$pull: {devices: device._id}}).then(() => {
+            Group.updateOne({_id: device.groupId}, {$pull: {devices: device._id}}).then((group) => {
+                MQTTHandler.publishMessage('device/' + device._id + '/set_group_number', 0);
+                GroupEvent.create(EventController.groupEvent('group.device_removed', group));
                 return true;
             }).catch((err) => {
                 console.error('err on deleting device from group');
