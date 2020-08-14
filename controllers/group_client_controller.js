@@ -44,15 +44,15 @@ module.exports = {
     },
 
     // Check if device is already added to group, if not then update group and return true.
-    async addDeviceToGroup(deviceId, groupId) {
+    async addDeviceToGroup(_id, groupId) {
         let group = await Group.findOne({_id: groupId})
             .catch(err => {
                 console.error('err on finding group');
                 console.error(err);
             });
 
-        if (group.devices.length === 0 || !group.devices.includes(deviceId)) {
-            Group.updateOne({_id: groupId}, {$push: {devices: deviceId}}).then((group) => {
+        if (group.devices.length === 0 || !group.devices.includes(_id)) {
+            Group.updateOne({_id: groupId}, {$push: {devices: _id}}).then((group) => {
                 GroupEvent.create(EventController.groupEvent('group.device_added', group))
                 return true;
             }).catch((err) => {

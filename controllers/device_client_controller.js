@@ -26,24 +26,29 @@ module.exports = {
 			powerState: req.body.powerState
 		});
 		
-		console.log(res.body);
+		console.log(device);
 		
-		let deviceObj = await Device.find({deviceName: device.deviceName, deviceIp: device.deviceIp});
-		console.log(deviceObj);
+		let deviceObj = await Device.findOne({deviceName: device.deviceName, deviceIp: device.deviceIp});
 		
-		if (deviceObj === 0) {
-			
-			Device.create(device).then((device) => {
+		if (deviceObj === null) {
+			console.log('STAP 1');
+			Device.create(device, {new: true}).then((device) => {
+				console.log('STAP 2');
+				console.log("NEW DEVICE CREATED!!!!!!!!!");
+				console.log(device);
+				MQTTHandler.publishMessage('device/' + 0 + '/set_device_id', device._id);
 				MQTTHandler.publishMessage('/client/device_added', JSON.stringify(deviceArray));
 				res.sendStatus(200);
 				console.log('Device added');
 				DeviceEvent.create(EventController.deviceEvent('device.created', device));
 			}).catch(err => {
+				console.log('STAP 3');
 				console.error("Err on creating device");
 				console.error(err);
 				res.sendStatus(500);
 			});
 		} else {
+			console.log('STAP 4');
 			console.error('Device already exists');
 			res.sendStatus(500);
 		}
@@ -206,6 +211,7 @@ module.exports = {
 	},
 	
 	async deleteDevice(req, res, next) {
+		console.log(req.body);
 		let removeFromGroupResult = true;
 		let _id = req.body._id;
 		let device = await Device.findOne({_id: _id});

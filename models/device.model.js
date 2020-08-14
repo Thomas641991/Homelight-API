@@ -8,7 +8,7 @@ const DeviceSchema = new Schema({
 	},
 	deviceName: {
 		type: String,
-		required: true
+		required: false
 	},
 	groupId: {
 		type: String,
