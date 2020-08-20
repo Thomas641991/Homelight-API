@@ -1,9 +1,12 @@
 module.exports = {
     deviceEvent(routingkey, request) {
+        console.log("request: ");
+        console.log(request);
         return {
             routingkey: routingkey,
             device: {
-                deviceIp: request. deviceIp,
+                _id: request._id,
+                deviceIp: request.deviceIp,
                 deviceName: request.deviceName,
                 groupId: request.groupId,
                 powerState: request.powerState,

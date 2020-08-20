@@ -6,11 +6,16 @@ const GroupController = require('./group_client_controller');
 module.exports = {
     
     async deviceIdSet(message) {
+    	console.log("deviceIdSet");
+    	console.log(message);
         let updatedDevice = await Device.findOneAndUpdate({_id: message.previousId}, {_id: message._id}, {new: true})
+        console.log("Updated device:");
+        console.log(updatedDevice);
         DeviceEvent.create(EventController.deviceEvent('device.edited', updatedDevice));
     },
 
     async deviceNameSet(message) {
+        console.log(message);
         let updatedDevice = await Device.findOneAndUpdate({_id: message._id}, {deviceName: message.deviceName}, {new: true})
         DeviceEvent.create(EventController.deviceEvent('device.edited', updatedDevice));
     },

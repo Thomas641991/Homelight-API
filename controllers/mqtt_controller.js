@@ -37,16 +37,16 @@ function callbackForMessage(topic, message) {
     switch (topic) {
         // Device topics
         case 'device/power_state_set':
-            DeviceMessageController.powerStateSet(message);
+            DeviceMessageController.powerStateSet(JSON.parse(message));
             break;
 		case 'device/device_id_set':
-			DeviceMessageController.deviceIdSet(message);
+			DeviceMessageController.deviceIdSet(JSON.parse(message));
 			break;
         case 'device/device_name_set':
-            DeviceMessageController.deviceNameSet(message);
+            DeviceMessageController.deviceNameSet(JSON.parse(message));
             break;
         case 'device/device_group_set':
-            DeviceMessageController.groupIdSet(message);
+            DeviceMessageController.groupIdSet(JSON.parse(message));
             break;
 
         // Group topics

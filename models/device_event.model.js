@@ -7,7 +7,7 @@ const DeviceEventSchema = new Schema({
         required: true
     },
     device: {
-        type: mongoose.Schema.Types.Object,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'device',
         required: true
     },

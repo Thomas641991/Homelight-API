@@ -3,7 +3,7 @@ const DeviceEvent = require('../models/device_event.model');
 const EventController = require('./event_controller');
 const GroupController = require('./group_client_controller');
 const MQTTHandler = require('./mqtt_controller');
-const mongodb = require('../config/env/env');
+const mongoose = require('mongoose');
 
 let deviceArray = [];
 
@@ -18,29 +18,28 @@ module.exports = {
 	
 	// New device will be added in database and checked. After that a device added message will be published on MQTT for clients
 	async addDevice(req, res, next) {
+		let reqDeviceId = req.body._id;
+		console.log("Id: " + reqDeviceId);
 		
-		let device = new Device({
+		let requestDevice = new Device({
 			deviceIp: req.body.deviceIp,
 			deviceName: req.body.deviceName,
 			groupId: req.body.groupId,
 			powerState: req.body.powerState
 		});
 		
-		console.log(device);
+		console.log(requestDevice);
 		
-		let deviceObj = await Device.findOne({deviceName: device.deviceName, deviceIp: device.deviceIp});
-		
+		let deviceObj = await Device.findOne({deviceName: requestDevice.deviceName, deviceIp: requestDevice.deviceIp});
 		if (deviceObj === null) {
-			console.log('STAP 1');
-			Device.create(device, {new: true}).then((device) => {
-				console.log('STAP 2');
-				console.log("NEW DEVICE CREATED!!!!!!!!!");
+			Device.create(requestDevice).then((device) => {
+				console.log("New device: ");
 				console.log(device);
-				MQTTHandler.publishMessage('device/' + 0 + '/set_device_id', device._id);
-				MQTTHandler.publishMessage('/client/device_added', JSON.stringify(deviceArray));
+				DeviceEvent.create(EventController.deviceEvent('device.created', device));
+				MQTTHandler.publishMessage('device/set_device_id', JSON.stringify({previous_id: reqDeviceId, _id: device._id}));
+				MQTTHandler.publishMessage('/client/device_added', JSON.stringify(device));
 				res.sendStatus(200);
 				console.log('Device added');
-				DeviceEvent.create(EventController.deviceEvent('device.created', device));
 			}).catch(err => {
 				console.log('STAP 3');
 				console.error("Err on creating device");
@@ -48,10 +47,32 @@ module.exports = {
 				res.sendStatus(500);
 			});
 		} else {
-			console.log('STAP 4');
-			console.error('Device already exists');
+			console.log("Device exists")
 			res.sendStatus(500);
 		}
+		
+		// if (deviceObj === null) {
+		// 	console.log('STAP 1');
+		// 	Device.create(response, {new: true}).then((device) => {
+		// 		console.log('STAP 2');
+		// 		console.log("NEW DEVICE CREATED!!!!!!!!!");
+		// 		console.log(device);
+		// 		MQTTHandler.publishMessage('device/set_device_id', JSON.stringify({previous_id: response._id, _id: device._id}));
+		// 		MQTTHandler.publishMessage('/client/device_added', JSON.stringify(device));
+		// 		res.sendStatus(200);
+		// 		console.log('Device added');
+		// 		DeviceEvent.create(EventController.deviceEvent('device.created', device));
+		// 	}).catch(err => {
+		// 		console.log('STAP 3');
+		// 		console.error("Err on creating device");
+		// 		console.error(err);
+		// 		res.sendStatus(500);
+		// 	});
+		// } else {
+		// 	console.log('STAP 4');
+		// 	console.error('Device already exists');
+		// 	res.sendStatus(500);
+		// }
 	},
 
 	// TODO: Remove ID from topic and into message
@@ -59,8 +80,10 @@ module.exports = {
 	setDeviceName(req, res, next) {
 		let _id = req.body._id;
 		let deviceName = req.body.deviceName;
+		
+		console.log(_id);
 
-		MQTTHandler.publishMessage('device/' + _id + '/set_device_name', deviceName);
+		MQTTHandler.publishMessage('device/set_device_name', JSON.stringify({_id: _id, deviceName: deviceName}));
 		Device.findOne({_id: _id}).then((device) => {
 			if (device !== null) {
 				res.sendStatus(200);
@@ -85,14 +108,14 @@ module.exports = {
 		// })
 	},
 	
-	
+	// TODO: Check dependencies
 	// Group is updated in database and checked. If OK, new group number is posted on MQTT with device ID to let device know.
 	async setGroup(req, res, next) {
 		let _id = req.body._id;
 		let groupId = req.body.groupId;
 
-		MQTTHandler.publishMessage('device/' + _id + '/set_group_number', groupId);
-		Device.findOne({_id: _id}).then((device) => {
+		MQTTHandler.publishMessage('device/set_group_number', JSON.stringify({_id: _id, groupId: groupId}));
+		Device.findOneAndUpdate({_id: _id}, {groupId: groupId}).then((device) => {
 			if (device !== null) {
 				res.sendStatus(200);
 			}
@@ -117,7 +140,7 @@ module.exports = {
 		let _id = req.body._id;
 		let powerState = req.body.powerState;
 		
-		MQTTHandler.publishMessage('device/' + _id + '/set_power_state', powerState.toString());
+		MQTTHandler.publishMessage('device/set_power_state', JSON.stringify({_id: _id, powerState: powerState.toString()}));
 		Device.findOne({_id: _id}).then((device) => {
 			if (device !== null) {
 				res.sendStatus(200);
@@ -133,9 +156,9 @@ module.exports = {
 	softResetDevice(req, res, next) {
 		let _id = req.body._id;
 		
-		MQTTHandler.publishMessage('device/' + _id + '/reset_device', 'true');
+		MQTTHandler.publishMessage('device/reset_device', JSON.stringify({_id: _id, soft_reset: 'true'}));
 		setTimeout(() => {
-			MQTTHandler.publishMessage('device/' + _id + '/reset_device', 'false');
+			MQTTHandler.publishMessage('device/reset_device', JSON.stringify({_id: _id, soft_reset: 'false'}));
 		}, 500);
 
 		Device.findOne({_id: _id}).then((device) => {
@@ -157,9 +180,9 @@ module.exports = {
 		// TODO: Check for errors
 		this.deleteDevice(req);
 		
-		MQTTHandler.publishMessage('device/' + _id + '/hard_reset_device', 'true');
+		MQTTHandler.publishMessage('device/hard_reset_device', JSON.stringify({_id: _id, hard_reset: 'true'}));
 		setTimeout(() => {
-			MQTTHandler.publishMessage('device/' + _id + '/hard_reset_device', 'false');
+			MQTTHandler.publishMessage('device/hard_reset_device', JSON.stringify({_id: _id, hard_reset: 'false'}));
 		}, 500);
 
 		Device.findOne({_id: _id}).then((device) => {
@@ -178,9 +201,9 @@ module.exports = {
 	restartDevice(req, res, next) {
 		let _id = req.body._id;
 		
-		MQTTHandler.publishMessage('device/' + _id + '/restart_device', 'true');
+		MQTTHandler.publishMessage('device/restart_device', JSON.stringify({_id: _id, restart: 'true'}));
 		setTimeout(() => {
-			MQTTHandler.publishMessage('device/' + _id + '/restart_device', 'false');
+			MQTTHandler.publishMessage('device/restart_device', JSON.stringify({_id: _id, restart: 'false'}));
 		}, 500);
 
 		Device.findOne({_id: _id}).then((device) => {
