@@ -75,7 +75,6 @@ module.exports = {
 		// }
 	},
 
-	// TODO: Remove ID from topic and into message
 	// Device name will be updated in database and checked. If OK, the new name will be published on MQTT with device ID to let device know.
 	setDeviceName(req, res, next) {
 		let _id = req.body._id;
