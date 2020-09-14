@@ -1,8 +1,8 @@
 const Group = require('../models/group.model');
 const GroupEvent = require('../models/group_event.model');
-const EventController = require('./event_controller');
+const EventController = require('./event.controller');
 const Device = require('../models/device.model');
-const MQTTHandler = require('./mqtt_controller');
+const MQTTHandler = require('./mqtt.controller');
 
 module.exports = {
     // Endpoints

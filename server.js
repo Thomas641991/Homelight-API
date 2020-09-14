@@ -4,8 +4,6 @@ const os = require('os');
 
 app.listen(config.env.webPort, () => {
     console.log('Date and time started: ' + new Date());
-    
-    
     console.log('Running on: ' + getIp() + ':' + config.env.webPort);
 });
 
@@ -22,6 +20,6 @@ function getIp() {
             }
         }
     }
-    
-    return results.Ethernet;
+
+    return results.en0;
 }

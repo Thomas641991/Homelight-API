@@ -1,6 +1,6 @@
 const mqtt_env = require('../config/env/mqtt_env');
-const DeviceMessageController = require('./device_message_controller');
-const GroupMessageController = require('./group_message_controller');
+const DeviceMessageController = require('./device_message.controller');
+const GroupMessageController = require('./group_message.controller');
 
 let mqttClient = null;
 

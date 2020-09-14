@@ -1,37 +1,40 @@
-const deviceClientController = require('../controllers/device_client_controller');
-const groupClientController = require('../controllers/group_client_controller');
-const systemController = require('../controllers/system_controller');
+const auth = require('../auth/auth')
+const deviceClientController = require('../controllers/device_client.controller');
+const groupClientController = require('../controllers/group_client.controller');
+const systemController = require('../controllers/system.controller');
+const userController = require('../controllers/user.controller')
 
 module.exports = (app) => {
-    
-    //Device
-    
-    //GET
-    app.post('/allDevices', deviceClientController.getAllDevices);
-    app.post('/getDevice', deviceClientController.getDevice);
-    
-    //POST
-    app.post('/addNewDevice', deviceClientController.addDevice);
-    app.post('/setDeviceName', deviceClientController.setDeviceName);
-    app.post('/setGroup', deviceClientController.setGroup);
-    app.post('/setPowerState', deviceClientController.setPowerStateDevice);
-    app.post('/softResetDevice', deviceClientController.softResetDevice);
-    app.post('/hardResetDevice', deviceClientController.hardResetDevice);
-    app.post('/restartDevice', deviceClientController.restartDevice);
-    app.post('/deleteDevice', deviceClientController.deleteDevice);
-    
-    //App
-    //TODO: APP ROUTES
-    
-    //Group
-    //GET
-    app.post('/allGroups', groupClientController.getAllGroups);
-    
-    //POST
-    app.post('/addGroup', groupClientController.addGroup);
-    app.post('/removeGroup', groupClientController.removeGroup);
-    
-    //System
-    //POST
-    app.post('/updateSystem', systemController.updateSystem)
+	//App
+	//POST
+	app.post('/register', userController.register);
+	app.post('/login', userController.login);
+	app.post('/signOut', auth.authenticateToken, userController.signOut)
+
+	//Device
+	//GET
+	app.post('/allDevices', auth.authenticateToken, deviceClientController.getAllDevices);
+	app.post('/getDevice', auth.authenticateToken, deviceClientController.getDevice);
+
+	//POST
+	app.post('/addNewDevice', auth.authenticateToken, deviceClientController.addDevice);
+	app.post('/setDeviceName', auth.authenticateToken, deviceClientController.setDeviceName);
+	app.post('/setGroup', auth.authenticateToken, deviceClientController.setGroup);
+	app.post('/setPowerState', auth.authenticateToken, deviceClientController.setPowerStateDevice);
+	app.post('/softResetDevice', auth.authenticateToken, deviceClientController.softResetDevice);
+	app.post('/hardResetDevice', auth.authenticateToken, deviceClientController.hardResetDevice);
+	app.post('/restartDevice', auth.authenticateToken, deviceClientController.restartDevice);
+	app.post('/deleteDevice', auth.authenticateToken, deviceClientController.deleteDevice);
+
+	//Group
+	//GET
+	app.post('/allGroups', auth.authenticateToken, groupClientController.getAllGroups);
+
+	//POST
+	app.post('/addGroup', auth.authenticateToken, groupClientController.addGroup);
+	app.post('/removeGroup', auth.authenticateToken, groupClientController.removeGroup);
+
+	//System
+	//POST
+	app.post('/updateSystem', auth.authenticateToken, systemController.updateSystem)
 };
